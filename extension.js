@@ -39,7 +39,7 @@ function activate(context) {
         }
 
 		 const workspaceFolder = vscode.workspace.workspaceFolders[0].uri.fsPath;
-        const robotNameFile = path.join(workspaceFolder, '.robotname');
+        const robotNameFile = path.join(workspaceFolder, '.robotName');
 
         let cmd = '';
 
@@ -51,12 +51,12 @@ function activate(context) {
             } else {
                 // File empty fallback
                 cmd = `pybricksdev run ble "${filePath}"`;
-                vscode.window.showWarningMessage('.robotname file is empty; using default command.');
+                vscode.window.showWarningMessage('.robotName file is empty; using default command.');
             }
         } else {
             // File not found fallback
             cmd = `pybricksdev run ble "${filePath}"`;
-            vscode.window.showWarningMessage('.robotname file not found; using default command.');
+            vscode.window.showWarningMessage('.robotName file not found; using default command.');
         }
 
         const terminal = vscode.window.createTerminal("Pybricks");
