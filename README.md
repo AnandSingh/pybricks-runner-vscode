@@ -1,65 +1,98 @@
-# pybricks-runner README
 
-This is the README for your extension "pybricks-runner". After writing up a brief description, we recommend including the following sections.
+# Pybricks Runner for VSCode
 
-## Features
-
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
-
-For example if there is an image subfolder under your extension project workspace:
-
-\!\[feature X\]\(images/feature-x.png\)
-
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
-
-## Requirements
-
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
-
-## Extension Settings
-
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
-
-For example:
-
-This extension contributes the following settings:
-
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
-
-## Known Issues
-
-Calling out known issues can help limit users opening duplicate issues against your extension.
-
-## Release Notes
-
-Users appreciate release notes as you update your extension.
-
-### 1.0.0
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
+**Pybricks Runner** is an VSCode extension that allows you to easily program and run your LEGO SPIKE Prime, EV3, and other Pybricks-compatible bricks directly from Visual Studio Code using the `pybricksdev` command-line tool.
 
 ---
 
-## Working with Markdown
+## Features
 
-You can author your README using Visual Studio Code.  Here are some useful editor keyboard shortcuts:
+- **One-click programming:** Easily program your LEGO brick directly from the VSCode editor.
+- **Simple integration:** Runs the `pybricksdev run` command directly in the integrated VSCode terminal.
+- **Immediate feedback:** Quickly see output and errors directly within VSCode.
 
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux)
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux)
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets
+---
 
-## For more information
+## Screenshots
 
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
+![screentshot showing the icon on the right activity bar](assets/screenshot.png)
 
-**Enjoy!**
+---
+
+## 🛠️ Installation
+
+### Prerequisites
+
+- [Visual Studio Code](https://code.visualstudio.com/)
+- [pybricksdev](https://github.com/pybricks/pybricksdev) (`pip install pybricksdev`)
+
+### Installing Extension
+
+1. Clone or download this repository:
+
+```bash
+git clone https://github.com/yourusername/pybricks-runner-vscode.git
+```
+
+2. Open the folder in VSCode:
+
+```bash
+cd pybricks-runner-vscode
+code .
+```
+
+3. Install dependencies and package the extension:
+
+```bash
+npm install -g vsce
+npm install
+vsce package
+```
+
+4. Install the `.vsix` extension file from VSCode:
+   - Open VSCode
+   - Go to Extensions (`Ctrl+Shift+X`)
+   - Click on `...` and select "Install from VSIX"
+   - Select the generated `.vsix` file
+
+---
+
+## Usage
+
+- Open a Python (`.py`) file intended for LEGO Pybricks.
+- Click on the "🚀 Run on LEGO Brick" button at the top right corner.
+
+The extension will execute:
+```bash
+pybricksdev run yourfile.py
+```
+
+---
+
+## Requirements
+
+- Node.js LTS (18.x recommended)
+- Python installed and configured (`pybricksdev`)
+- Supported LEGO hardware (EV3, SPIKE Prime, etc.)
+
+---
+
+## 🙌 Contributing
+
+Contributions are welcome! Feel free to open issues, submit pull requests, or suggest enhancements.
+
+1. Fork this repository.
+2. Create your feature branch: `git checkout -b my-new-feature`
+3. Commit your changes: `git commit -am 'Add some feature'`
+4. Push to the branch: `git push origin my-new-feature`
+5. Submit a pull request.
+
+---
+
+## 📜 License
+
+Distributed under the MIT License. See `LICENSE` for more information.
+
+---
+
+**Happy Building!**
