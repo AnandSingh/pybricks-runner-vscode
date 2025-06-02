@@ -13,9 +13,17 @@
   "main": "./extension.js",
   "contributes": {
     "commands": [{
-      "command": "pybricks-runner.helloWorld",
-      "title": "Hello World"
-    }]
+      "command": "pybricks.run",
+      "title": "🚀 Run on LEGO Brick"
+    }],
+     "menus": {
+      "editor/title": [
+        {
+          "command": "pybricks.run",
+          "group": "navigation"
+        }
+      ]
+    }
   },
   "scripts": {
     "lint": "eslint .",
