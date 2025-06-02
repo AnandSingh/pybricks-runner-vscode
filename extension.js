@@ -1,6 +1,9 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 const vscode = require('vscode');
+const { exec } = require('child_process');
+const fs = require('fs');
+const path = require('path');
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -35,15 +38,30 @@ function activate(context) {
             return;
         }
 
+		 const workspaceFolder = vscode.workspace.workspaceFolders[0].uri.fsPath;
+        const robotNameFile = path.join(workspaceFolder, '.robotname');
+
+        let cmd = '';
+
+        if (fs.existsSync(robotNameFile)) {
+            const robotName = fs.readFileSync(robotNameFile, 'utf8').trim();
+            if (robotName) {
+                cmd = `pybricksdev run ble --name "${robotName}" "${filePath}"`;
+                vscode.window.showInformationMessage(`Programming brick "${robotName}" with ${filePath}`);
+            } else {
+                // File empty fallback
+                cmd = `pybricksdev run ble "${filePath}"`;
+                vscode.window.showWarningMessage('.robotname file is empty; using default command.');
+            }
+        } else {
+            // File not found fallback
+            cmd = `pybricksdev run ble "${filePath}"`;
+            vscode.window.showWarningMessage('.robotname file not found; using default command.');
+        }
+
         const terminal = vscode.window.createTerminal("Pybricks");
         terminal.show();
-
-        const cmd = `pybricksdev run ble "${filePath}"`;
-
-        vscode.window.showInformationMessage(`Programming brick with ${filePath}`);
-
         terminal.sendText(cmd);
-
 	});
 
 	context.subscriptions.push(disposable);
