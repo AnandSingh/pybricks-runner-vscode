@@ -15,7 +15,7 @@
 
 ## Screenshots
 
-![image](./assets/1.png)
+![image](./assests/1.png)
 
 ---
 
