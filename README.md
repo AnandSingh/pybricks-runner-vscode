@@ -15,7 +15,7 @@
 
 ## Screenshots
 
-![screentshot showing the icon on the right activity bar](assets/screenshot.png)
+![screentshot showing the icon on the right activity bar](assets/1.png)
 
 ---
 
