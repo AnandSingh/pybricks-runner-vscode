@@ -51,6 +51,22 @@ function activate(context) {
 	//Initial status bar update at startup
 	updateStatusBarText(statusBarItem);
 
+    const workspaceFolders = vscode.workspace.workspaceFolders;
+    if (workspaceFolders && workspaceFolders.length > 0) {
+        const workspacePath = workspaceFolders[0].uri.fsPath;
+        const robotNameFile = path.join(workspacePath, '.robotName');
+
+        const fileWatcher = fs.watch(robotNameFile, (eventType) => {
+            if (eventType === 'change') {
+                updateStatusBarText(statusBarItem);
+            }
+        });
+
+        context.subscriptions.push({
+            dispose: () => fileWatcher.close()
+        });
+    }
+
 	// System Bluetooth command
     context.subscriptions.push(vscode.commands.registerCommand('pybricks.run', () => {
 
