@@ -20,22 +20,30 @@
   "contributes": {
     "commands": [
     {
-      "command": "pybricks.runWebBluetooth",
-      "title": "🌐 Run on web bluetooth"
-    },
-    {
       "command": "pybricks.run",
       "title": "🚀 Run on LEGO Brick"
+    },
+    {
+      "command": "pybricks.selectRobot",
+      "title": "Select LEGO Robot"
+    },
+    {
+      "command": "pybricks.runWebBluetooth",
+      "title": "🌐 Run on web bluetooth"
     }],
      "menus": {
       "editor/title": [
         {
-            "command": "pybricks.runWebBluetooth",
-            "group": "navigation"
-        },
-        {
           "command": "pybricks.run",
           "group": "navigation"
+        },
+        {
+          "command": "pybricks.selectRobot",
+          "group": "navigation"
+        },
+        {
+            "command": "pybricks.runWebBluetooth",
+            "group": "navigation"
         }
       ]
     }

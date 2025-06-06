@@ -96,6 +96,37 @@ function activate(context) {
         vscode.window.showInformationMessage('Programming brick via system Bluetooth...');
     }));
 
+    
+    //select robot name
+    context.subscriptions.push(vscode.commands.registerCommand('pybricks.selectRobot', async () => {
+        const knownRobots = ['SpikePrime', 'RoboMaster', 'LEGO Brick', 'Custom...'];
+
+        const selected = await vscode.window.showQuickPick(knownRobots, {
+            placeHolder: 'Select your LEGO robot name'
+        });
+
+        if (!selected) return;
+
+        let robotName = selected;
+
+        if (selected === 'Custom...') {
+            const custom = await vscode.window.showInputBox({
+                prompt: 'Enter a custom robot name'
+            });
+            if (!custom) return;
+            robotName = custom.trim();
+        }
+
+        const workspaceFolders = vscode.workspace.workspaceFolders;
+        if (workspaceFolders && workspaceFolders.length > 0) {
+            const workspacePath = workspaceFolders[0].uri.fsPath;
+            const robotNameFile = path.join(workspacePath, '.robotName');
+            fs.writeFileSync(robotNameFile, robotName + '\n');
+            vscode.window.showInformationMessage(`Robot name set to "${robotName}"`);
+        } else {
+            vscode.window.showErrorMessage('No workspace folder open.');
+        }
+    }));
 
     // Web Bluetooth command
     context.subscriptions.push(vscode.commands.registerCommand('pybricks.runWebBluetooth', () => {
