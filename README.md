@@ -77,6 +77,22 @@ pybricksdev run yourfile.py
 
 ---
 
+## ✅ Web Bluetooth Setup for VSCode & code-server:
+
+To enable Web Bluetooth:
+
+1. **Open Chrome Flags**:  
+   Go to `chrome://flags/#enable-web-bluetooth` and set it to **Enabled**.
+
+2. **Use HTTPS or localhost**:  
+   Web Bluetooth only runs in secure contexts.
+
+3. **Browser Compatibility**:  
+   Ensure you're using a Chromium-based browser (**Chrome, Edge**).
+
+After enabling the flag, reload your VSCode web interface. Web Bluetooth functionality will then be available and reliable.
+
+
 ## 🙌 Contributing
 
 Contributions are welcome! Feel free to open issues, submit pull requests, or suggest enhancements.

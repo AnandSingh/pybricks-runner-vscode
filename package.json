@@ -2,7 +2,7 @@
   "name": "pybricks-runner",
   "displayName": "pybricks-runner",
   "description": "VSCode extension to program LEGO bricks using pybricksdev",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "engines": {
     "vscode": "^1.100.0"
   },
@@ -19,12 +19,20 @@
     "commands": [{
       "command": "pybricks.run",
       "title": "🚀 Run on LEGO Brick"
+    },
+    {
+      "command": "pybricks.runWebBluetooth",
+      "title": "🌐 Run with Web Bluetooth"
     }],
      "menus": {
       "editor/title": [
         {
           "command": "pybricks.run",
           "group": "navigation"
+        },
+        {
+            "command": "pybricks.runWebBluetooth",
+            "group": "navigation"
         }
       ]
     }
