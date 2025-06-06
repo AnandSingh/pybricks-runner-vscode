@@ -25,7 +25,7 @@
     },
     {
       "command": "pybricks.selectRobot",
-      "title": "Select LEGO Robot"
+      "title": "🔧 Select LEGO Robot"
     },
     {
       "command": "pybricks.runWebBluetooth",

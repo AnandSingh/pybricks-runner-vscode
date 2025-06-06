@@ -97,11 +97,33 @@ function activate(context) {
     }));
 
     
-    //select robot name
+        //select robot name
     context.subscriptions.push(vscode.commands.registerCommand('pybricks.selectRobot', async () => {
-        const knownRobots = ['SpikePrime', 'RoboMaster', 'LEGO Brick', 'Custom...'];
+        const workspaceFolders = vscode.workspace.workspaceFolders;
+        if (!workspaceFolders || workspaceFolders.length === 0) {
+            vscode.window.showErrorMessage('No workspace folder open.');
+            return;
+        }
 
-        const selected = await vscode.window.showQuickPick(knownRobots, {
+        const workspacePath = workspaceFolders[0].uri.fsPath;
+        const listFile = path.join(workspacePath, '.robotNameList');
+        const robotNameFile = path.join(workspacePath, '.robotName');
+
+        let robotList = [];
+        if (fs.existsSync(listFile)) {
+            try {
+                const content = fs.readFileSync(listFile, 'utf8');
+                robotList = content.split('\n').map(name => name.trim()).filter(name => name);
+            } catch (err) {
+                console.warn('Could not read .robotNameList:', err.message);
+            }
+        }
+
+        if (!robotList.includes('Custom...')) {
+            robotList.push('Custom...');
+        }
+
+        const selected = await vscode.window.showQuickPick(robotList, {
             placeHolder: 'Select your LEGO robot name'
         });
 
@@ -117,15 +139,8 @@ function activate(context) {
             robotName = custom.trim();
         }
 
-        const workspaceFolders = vscode.workspace.workspaceFolders;
-        if (workspaceFolders && workspaceFolders.length > 0) {
-            const workspacePath = workspaceFolders[0].uri.fsPath;
-            const robotNameFile = path.join(workspacePath, '.robotName');
-            fs.writeFileSync(robotNameFile, robotName + '\n');
-            vscode.window.showInformationMessage(`Robot name set to "${robotName}"`);
-        } else {
-            vscode.window.showErrorMessage('No workspace folder open.');
-        }
+        fs.writeFileSync(robotNameFile, robotName + '\n');
+        vscode.window.showInformationMessage(`Robot name set to "${robotName}"`);
     }));
 
     // Web Bluetooth command
