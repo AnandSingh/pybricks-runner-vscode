@@ -19,6 +19,29 @@
 
 ---
 
+## 🎥 Demo
+
+### 🚀 Flash Your Robot
+
+![Flash Robot](assets/flash-my-robot.gif)
+
+1. Open a `.py` file (e.g. `main.py`)
+2. Click the 🚀 `Run on <RobotName>` button in the status bar
+3. The terminal launches and executes:
+   ```bash
+   pybricksdev run ble --name "YourRobot" main.py
+
+
+### ⚙️ Select or Change Robot Name
+
+![Select Robot](assets/select-robot.gif)
+
+1. Click the ⚙️ `Select or Change Robot` button top right or Press Ctrl+Shift+P → Select LEGO Robot 
+2. Choose from the list in .robotNameList or enter a custom name
+3. .robotName is updated
+4. Status bar updates instantly
+
+
 ## 🛠️ Installation
 
 ### Prerequisites
