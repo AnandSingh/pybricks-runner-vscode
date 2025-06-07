@@ -145,119 +145,143 @@ function activate(context) {
 
     // Web Bluetooth command
     context.subscriptions.push(vscode.commands.registerCommand('pybricks.runWebBluetooth', () => {
-        const editor = vscode.window.activeTextEditor;
-        if (!editor) {
-            vscode.window.showErrorMessage('No active Python file!');
-            return;
-        }
-        const scriptContent = editor.document.getText();
+	const editor = vscode.window.activeTextEditor;
+	if (!editor) {
+		vscode.window.showErrorMessage('No active Python file!');
+		return;
+	}
+	const scriptContent = editor.document.getText();
 
-        const panel = vscode.window.createWebviewPanel(
-            'pybricksWebBluetooth',
-            'Pybricks Web Bluetooth Runner',
-            vscode.ViewColumn.One,
-            { enableScripts: true }
-        );
+	// Read robot name from file
+	let robotName = 'LEGO Bricks';
+	const workspaceFolders = vscode.workspace.workspaceFolders;
+	if (workspaceFolders && workspaceFolders.length > 0) {
+		const workspacePath = workspaceFolders[0].uri.fsPath;
+		const robotNameFile = path.join(workspacePath, '.robotName');
+		try {
+			if (fs.existsSync(robotNameFile)) {
+				const name = fs.readFileSync(robotNameFile, 'utf8').trim();
+				if (name) robotName = name;
+			}
+		} catch (err) {
+			console.warn('Could not read .robotName:', err.message);
+		}
+	}
 
-        panel.webview.html = getWebviewContent();
+	const panel = vscode.window.createWebviewPanel(
+		'pybricksWebBluetooth',
+		'Pybricks Web Bluetooth Runner',
+		vscode.ViewColumn.One,
+		{ enableScripts: true }
+	);
 
-        // Webview messaging
-        panel.webview.onDidReceiveMessage(
-            message => {
-                if (message.command === 'requestScript') {
-                    panel.webview.postMessage({
-                        command: 'sendScript',
-                        content: scriptContent
-                    });
-                }
-            },
-            undefined,
-            context.subscriptions
-        );
+    const fileName = path.basename(editor.document.fileName);
+
+    panel.webview.html = getWebviewContent(robotName, fileName);
+
+    panel.webview.onDidReceiveMessage(
+        message => {
+            if (message.command === 'requestScript') {
+                panel.webview.postMessage({
+                    command: 'sendScript',
+                    content: scriptContent,
+                    robotName: robotName,
+                    fileName: fileName
+                });
+            }
+        },
+        undefined,
+        context.subscriptions
+    );
     }));
- // Web Bluetooth command
-    context.subscriptions.push(vscode.commands.registerCommand('pybricks.runWebBluetooth', () => {
-        const editor = vscode.window.activeTextEditor;
-        if (!editor) {
-            vscode.window.showErrorMessage('No active Python file!');
-            return;
-        }
-        const scriptContent = editor.document.getText();
 
-        const panel = vscode.window.createWebviewPanel(
-            'pybricksWebBluetooth',
-            'Pybricks Web Bluetooth Runner',
-            vscode.ViewColumn.One,
-            { enableScripts: true }
-        );
-
-        panel.webview.html = getWebviewContent();
-
-        // Webview messaging
-        panel.webview.onDidReceiveMessage(
-            message => {
-                if (message.command === 'requestScript') {
-                    panel.webview.postMessage({
-                        command: 'sendScript',
-                        content: scriptContent
-                    });
-                }
-            },
-            undefined,
-            context.subscriptions
-        );
-    }));
 }
 
-function getWebviewContent() {
-    return `
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; connect-src *; style-src 'unsafe-inline';">
-            <title>Pybricks Web Bluetooth Runner</title>
-        </head>
-        <body>
-            <h2>Pybricks Web Bluetooth Runner 🌐</h2>
-            <button id="runButton">Connect & Run</button>
-            <pre id="output"></pre>
+function getWebviewContent(robotName, fileName) {
+	return `
+		<!DOCTYPE html>
+		<html>
+		<head>
+			<meta charset="UTF-8">
+			<title>Run ${fileName} on ${robotName}</title>
+		</head>
+		<body>
+			<h2>Run on ${robotName} 🌐</h2>
+			<p><strong>File:</strong> ${fileName}</p>
+			<button id="runButton">Connect & Run</button>
+			<pre id="output"></pre>
 
-            <script>
+			<script>
+				const vscode = acquireVsCodeApi();
 
-            
-                const vscode = acquireVsCodeApi();
+				document.getElementById('runButton').addEventListener('click', async () => {
+					vscode.postMessage({ command: 'requestScript' });
+				});
 
-                document.getElementById('runButton').addEventListener('click', async () => {
-                    vscode.postMessage({ command: 'requestScript' });
-                });
+				window.addEventListener('message', async (event) => {
+					const message = event.data;
+					if (message.command === 'sendScript') {
+						const script = message.content;
+						const robotName = message.robotName;
+						const fileName = message.fileName;
 
-                window.addEventListener('message', async (event) => {
-                    const message = event.data;
+						document.getElementById('output').textContent = "📁 " + fileName + "\\n🔍 Scanning for: " + robotName;
 
-                    if (message.command === 'sendScript') {
-                        const scriptContent = message.content;
-                        document.getElementById('output').textContent = "Connecting via Web Bluetooth...";
+						const PYBRICKS_SERVICE = 'c5f50001-8280-46da-89f4-6d8051e4aeef';
+						const COMMAND_CHAR = 'c5f50002-8280-46da-89f4-6d8051e4aeef';
 
-                        try {
-                            const device = await navigator.bluetooth.requestDevice({
-                                filters: [{ services: ['battery_service'] }] // Replace with Pybricks service UUID
-                            });
+						const COMMANDS = {
+							STOP_USER_PROGRAM: 0,
+							START_USER_PROGRAM: 1,
+							WRITE_USER_PROGRAM_META: 3,
+							WRITE_USER_RAM: 4
+						};
 
-                            const server = await device.gatt.connect();
+						try {
+							const device = await navigator.bluetooth.requestDevice({
+								filters: [{ namePrefix: robotName }],
+								optionalServices: [PYBRICKS_SERVICE]
+							});
 
-                            // TODO: Implement Pybricks BLE data transfer logic here
+							document.getElementById('output').textContent = "🔗 Connecting to " + device.name + "...";
+							const server = await device.gatt.connect();
+							const service = await server.getPrimaryService(PYBRICKS_SERVICE);
+							const char = await service.getCharacteristic(COMMAND_CHAR);
 
-                            document.getElementById('output').textContent = "Connected! Implement Pybricks BLE logic here.";
-                        } catch (error) {
-                            document.getElementById('output').textContent = 'Error: ' + error;
-                        }
-                    }
-                });
-            </script>
-        </body>
-        </html>
-    `;
+							const encoder = new TextEncoder();
+							const programData = encoder.encode(script);
+							const programSize = programData.length;
+
+							const meta = new ArrayBuffer(5);
+							const metaView = new DataView(meta);
+							metaView.setUint8(0, COMMANDS.WRITE_USER_PROGRAM_META);
+							metaView.setUint32(1, programSize, true);
+							await char.writeValue(meta);
+
+							const chunkSize = 100;
+							for (let offset = 0; offset < programSize; offset += chunkSize) {
+								const chunk = programData.slice(offset, offset + chunkSize);
+								const buffer = new ArrayBuffer(5 + chunk.length);
+								const view = new DataView(buffer);
+								view.setUint8(0, COMMANDS.WRITE_USER_RAM);
+								view.setUint32(1, offset, true);
+								new Uint8Array(buffer, 5).set(chunk);
+								await char.writeValue(buffer);
+								await new Promise(resolve => setTimeout(resolve, 20));
+							}
+
+							await char.writeValue(new Uint8Array([COMMANDS.START_USER_PROGRAM]));
+
+							document.getElementById('output').textContent = "✅ ${fileName} sent and executed on ${robotName}!";
+						} catch (error) {
+							document.getElementById('output').textContent = "❌ Error: " + error;
+						}
+					}
+				});
+			</script>
+		</body>
+		</html>
+	`;
 }
 
 // This method is called when your extension is deactivated
