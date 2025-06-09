@@ -32,8 +32,6 @@ function updateStatusBarText(statusBarItem) {
 	return robotName;
 }
 
-
-
 /**
  * @param {vscode.ExtensionContext} context
  */
@@ -102,62 +100,77 @@ function activate(context) {
     }));
 
     vscode.window.onDidCloseTerminal(terminal => {
-	if (terminal.name === 'Pybricks') {
-		const status = terminal.exitStatus;
-		if (status) {
-			vscode.window.showInformationMessage(`Pybricks terminal exited with code ${status.code}`);
-		} else {
-			vscode.window.showInformationMessage('Pybricks terminal closed with unknown status.');
+		if (terminal.name === 'Pybricks') {
+			const status = terminal.exitStatus;
+			if (status) {
+				vscode.window.showInformationMessage(`Pybricks terminal exited with code ${status.code}`);
+			} else {
+				vscode.window.showInformationMessage('Pybricks terminal closed with unknown status.');
+			}
+			pybricksTerminal = undefined;
 		}
-		pybricksTerminal = undefined;
-	}
-});
+	});
 
-        //select robot name
-    context.subscriptions.push(vscode.commands.registerCommand('pybricks.selectRobot', async () => {
-        const workspaceFolders = vscode.workspace.workspaceFolders;
-        if (!workspaceFolders || workspaceFolders.length === 0) {
-            vscode.window.showErrorMessage('No workspace folder open.');
-            return;
-        }
 
-        const workspacePath = workspaceFolders[0].uri.fsPath;
-        const listFile = path.join(workspacePath, '.robotNameList');
-        const robotNameFile = path.join(workspacePath, '.robotName');
+	context.subscriptions.push(vscode.commands.registerCommand('pybricks.selectRobot', async () => {
+		const workspaceFolders = vscode.workspace.workspaceFolders;
+		if (!workspaceFolders || workspaceFolders.length === 0) {
+			vscode.window.showErrorMessage('No workspace folder open.');
+			return;
+		}
 
-        let robotList = [];
-        if (fs.existsSync(listFile)) {
-            try {
-                const content = fs.readFileSync(listFile, 'utf8');
-                robotList = content.split('\n').map(name => name.trim()).filter(name => name);
-            } catch (err) {
-                console.warn('Could not read .robotNameList:', err.message);
-            }
-        }
+		const workspacePath = workspaceFolders[0].uri.fsPath;
+		const listFile = path.join(workspacePath, '.robotNameList');
+		const robotNameFile = path.join(workspacePath, '.robotName');
 
-        if (!robotList.includes('Custom...')) {
-            robotList.push('Custom...');
-        }
+		let robotList = [];
+		if (fs.existsSync(listFile)) {
+			try {
+				const content = fs.readFileSync(listFile, 'utf8');
+				robotList = content.split('\n').map(name => name.trim()).filter(name => name);
+			} catch (err) {
+				console.warn('Could not read .robotNameList:', err.message);
+			}
+		}
 
-        const selected = await vscode.window.showQuickPick(robotList, {
-            placeHolder: 'Select your LEGO robot name'
-        });
+		if (!robotList.includes('Custom...')) {
+			robotList.push('Custom...');
+		}
 
-        if (!selected) return;
+		const selected = await vscode.window.showQuickPick(robotList, {
+			placeHolder: 'Select your LEGO robot name'
+		});
+		if (!selected) return;
 
-        let robotName = selected;
+		let robotName = selected;
 
-        if (selected === 'Custom...') {
-            const custom = await vscode.window.showInputBox({
-                prompt: 'Enter a custom robot name'
-            });
-            if (!custom) return;
-            robotName = custom.trim();
-        }
+		if (selected === 'Custom...') {
+			const custom = await vscode.window.showInputBox({
+				prompt: 'Enter a custom robot name'
+			});
+			if (!custom) return;
+			robotName = custom.trim();
 
-        fs.writeFileSync(robotNameFile, robotName + '\n');
-        vscode.window.showInformationMessage(`Robot name set to "${robotName}"`);
-    }));
+			// ✅ Add custom name to .robotNameList if not already there
+			if (!robotList.includes(robotName)) {
+				try {
+					fs.appendFileSync(listFile, robotName + '\n');
+					vscode.window.showInformationMessage(`"${robotName}" added to .robotNameList`);
+				} catch (err) {
+					vscode.window.showErrorMessage(`Failed to update .robotNameList: ${err.message}`);
+				}
+			}
+		}
+
+		// ✅ Always update .robotName
+		try {
+			fs.writeFileSync(robotNameFile, robotName + '\n');
+			vscode.window.showInformationMessage(`Robot name set to "${robotName}"`);
+		} catch (err) {
+			vscode.window.showErrorMessage(`Failed to update .robotName: ${err.message}`);
+		}
+	}));
+
 
     // Web Bluetooth command
     context.subscriptions.push(vscode.commands.registerCommand('pybricks.runWebBluetooth', () => {

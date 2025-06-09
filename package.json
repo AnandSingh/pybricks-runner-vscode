@@ -2,7 +2,7 @@
   "name": "pybricks-runner",
   "displayName": "pybricks-runner",
   "description": "VSCode extension to program LEGO bricks using pybricksdev",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "engines": {
     "vscode": "^1.100.0"
   },
