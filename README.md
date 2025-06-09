@@ -1,15 +1,14 @@
 
 # Pybricks Runner for VSCode
 
+[![VS Code Marketplace](https://img.shields.io/visual-studio-marketplace/v/AnandSingh.pybricks-runner)](https://marketplace.visualstudio.com/items?itemName=AnandSingh.pybricks-runner)
+![Downloads](https://img.shields.io/visual-studio-marketplace/d/AnandSingh.pybricks-runner)
+![Rating](https://img.shields.io/visual-studio-marketplace/r/AnandSingh.pybricks-runner)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 ![GitHub release](https://img.shields.io/github/v/release/AnandSingh/pybricks-runner-vscode)
 ![Platform](https://img.shields.io/badge/platform-VSCode-blue)
-[![VS Code Marketplace](https://img.shields.io/visual-studio-marketplace/v/AnandSingh.pybricks-runner-vscode)](https://marketplace.visualstudio.com/items?itemName=AnandSingh.pybricks-runner-vscode)
-
 
 **Pybricks Runner** is an VSCode extension that allows you to easily program and run your LEGO SPIKE Prime, EV3, and other Pybricks-compatible bricks directly from Visual Studio Code using the `pybricksdev` command-line tool.
-
----
 
 ## Features
 
