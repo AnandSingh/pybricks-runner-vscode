@@ -50,6 +50,7 @@ function activate(context) {
 
 	//Initial status bar update at startup
 	updateStatusBarText(statusBarItem);
+	let pybricksTerminal;
 
     const workspaceFolders = vscode.workspace.workspaceFolders;
     if (workspaceFolders && workspaceFolders.length > 0) {
@@ -90,13 +91,28 @@ function activate(context) {
 			cmd = `pybricksdev run ble --name "${robotName}" "${filePath}"`;
 		}
 
-        const terminal = vscode.window.createTerminal("Pybricks");
-        terminal.show();
-        terminal.sendText(cmd);
-        vscode.window.showInformationMessage('Programming brick via system Bluetooth...');
+		if (!pybricksTerminal /*|| pybricksTerminal.exitStatus*/) {
+			pybricksTerminal = vscode.window.createTerminal("Pybricks");
+		}
+		pybricksTerminal.show(true);
+		pybricksTerminal.sendText(cmd);
+
+        vscode.window.showInformationMessage(`Programming "${path.basename(filePath)}" to ${robotName}...`);
+        
     }));
 
-    
+    vscode.window.onDidCloseTerminal(terminal => {
+	if (terminal.name === 'Pybricks') {
+		const status = terminal.exitStatus;
+		if (status) {
+			vscode.window.showInformationMessage(`Pybricks terminal exited with code ${status.code}`);
+		} else {
+			vscode.window.showInformationMessage('Pybricks terminal closed with unknown status.');
+		}
+		pybricksTerminal = undefined;
+	}
+});
+
         //select robot name
     context.subscriptions.push(vscode.commands.registerCommand('pybricks.selectRobot', async () => {
         const workspaceFolders = vscode.workspace.workspaceFolders;
