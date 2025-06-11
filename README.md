@@ -8,6 +8,13 @@
 ![GitHub release](https://img.shields.io/github/v/release/AnandSingh/pybricks-runner-vscode)
 ![Platform](https://img.shields.io/badge/platform-VSCode-blue)
 
+# Pybricks Runner for VSCode
+
+<p align="center">
+  <img src="pybricks-runner-icon.png" alt="Pybricks Runner Logo" width="128"/>
+</p>
+
+
 **Pybricks Runner** is an VSCode extension that allows you to easily program and run your LEGO SPIKE Prime, EV3, and other Pybricks-compatible bricks directly from Visual Studio Code using the `pybricksdev` command-line tool.
 
 ## Features
@@ -54,7 +61,29 @@
 - [Visual Studio Code](https://code.visualstudio.com/)
 - [pybricksdev](https://github.com/pybricks/pybricksdev) (`pip install pybricksdev`)
 
-### Installing Extension
+## 🛠️ Installation
+
+### 🧩 From VS Code Marketplace (Recommended for VS Code)
+
+Install directly from the Visual Studio Code Marketplace:
+
+[![Install from Marketplace](https://img.shields.io/badge/Install%20from-Marketplace-blue)](https://marketplace.visualstudio.com/items?itemName=AnandSingh.pybricks-runner)
+
+1. Open VS Code
+2. Go to Extensions (`Ctrl+Shift+X`)
+3. Search for `pybricks-runner`
+4. Click **Install**
+
+---
+
+### 🌐 From Open VSX (For VSCodium, code-server, Theia, etc.)
+
+Install from Open VSX:
+
+[![Install from Open VSX](https://img.shields.io/badge/OpenVSX-Pybricks--Runner-blue)](https://open-vsx.org/extension/AnandSingh/pybricks-runner)
+
+
+### Manual Installing for development
 
 1. Clone or download this repository:
 
@@ -77,7 +106,12 @@ npm install
 vsce package
 ```
 
-4. Install the `.vsix` extension file from VSCode:
+4. Install as below 
+```
+code --install-extension pybricks-runner-<version>.vsix
+```
+
+Or Install the `.vsix` extension file from VSCode:
    - Open VSCode
    - Go to Extensions (`Ctrl+Shift+X`)
    - Click on `...` and select "Install from VSIX"
@@ -94,6 +128,18 @@ The extension will execute:
 ```bash
 pybricksdev run yourfile.py
 ```
+
+## 🧩 Troubleshooting
+
+- **Error: 'pybricksdev' not found**  
+  Make sure you've installed it globally using `pip install pybricksdev`.
+
+- **Robot not connecting**  
+  Ensure Bluetooth is enabled and your robot is turned on. Try re-pairing via your OS.
+
+- **Web Bluetooth not available**  
+  Check if you're using a Chromium browser and have enabled the `chrome://flags/#enable-web-bluetooth` flag.
+
 
 ---
 
