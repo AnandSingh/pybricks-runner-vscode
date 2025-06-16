@@ -280,6 +280,7 @@ function getWebviewContent(robotName, fileName) {
 							const encoder = new TextEncoder();
 							const programData = encoder.encode(script);
 							const programSize = programData.length;
+							await char.writeValue(Uint8Array.of(COMMANDS.STOP_USER_PROGRAM));
 
 							const meta = new ArrayBuffer(5);
 							const metaView = new DataView(meta);

@@ -3,14 +3,14 @@ name: Publish Extension
 on:
   push:
     tags:
-      - 'v*'  # Trigger on tags like v1.0.0
+      - 'v*'  # Triggers on tags like v1.0.0
 
 jobs:
   publish:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
+    - name: Checkout Code
       uses: actions/checkout@v3
 
     - name: Setup Node.js
@@ -18,18 +18,11 @@ jobs:
       with:
         node-version: '18'
 
-    - name: Install dependencies
+    - name: Install Dependencies
       run: npm install
 
     - name: Package Extension
       run: npx vsce package
-
-    - name: Create GitHub Release
-      uses: softprops/action-gh-release@v1
-      with:
-        files: '*.vsix'
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Publish to VS Code Marketplace
       run: npx vsce publish --packagePath $(ls *.vsix)
@@ -40,3 +33,10 @@ jobs:
       run: npx ovsx publish --packagePath $(ls *.vsix)
       env:
         OVSX_PAT: ${{ secrets.OVSX_TOKEN }}
+         
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: '*.vsix'
+      env:
+        token: ${{ secrets.GH_RELEASE_TOKEN }}
