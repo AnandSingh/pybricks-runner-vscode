@@ -55,16 +55,17 @@ function activate(context) {
         const workspacePath = workspaceFolders[0].uri.fsPath;
         const robotNameFile = path.join(workspacePath, '.robotName');
 
-        const fileWatcher = fs.watch(robotNameFile, (eventType) => {
-            if (eventType === 'change') {
-                updateStatusBarText(statusBarItem);
-            }
-        });
-
-        context.subscriptions.push({
-            dispose: () => fileWatcher.close()
-        });
-    }
+		if (fs.existsSync(robotNameFile)) {
+			const fileWatcher = fs.watch(robotNameFile, (eventType) => {
+				if (eventType === 'change') {
+					updateStatusBarText(statusBarItem);
+				}
+			});
+			context.subscriptions.push({ dispose: () => fileWatcher.close() });
+		} else {
+			console.warn(`.robotName not found — skipping fs.watch setup until user selects a robot.`);
+		}
+	}
 
 	// System Bluetooth command
     context.subscriptions.push(vscode.commands.registerCommand('pybricks.run', () => {
