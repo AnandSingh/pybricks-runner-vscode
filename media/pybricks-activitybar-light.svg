@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+  <rect x="6" y="5" width="3" height="3" rx="1" fill="#1F1F1F"/>
+  <rect x="10.5" y="5" width="3" height="3" rx="1" fill="#1F1F1F"/>
+  <rect x="15" y="5" width="3" height="3" rx="1" fill="#1F1F1F"/>
+  <path fill="#1F1F1F" fill-rule="evenodd" d="
+    M3,7 H21 V19 H3 Z
+    M13,11 L18,13 L13,15 Z
+  "/>
+</svg>

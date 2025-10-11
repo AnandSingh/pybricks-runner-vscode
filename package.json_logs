@@ -39,7 +39,17 @@
           "id": "pybricks.devices",
           "name": "Devices",
           "type": "tree"
+        },
+        {
+          "id": "pybricks.settings",
+          "name": "Quick Settings",
+          "type": "webview"
         }
+        /*{
+          "id": "pybricks.logs",
+          "name": "Logs / Plots",
+          "type": "webview"
+        }*/
       ]
     },
     "commands": [

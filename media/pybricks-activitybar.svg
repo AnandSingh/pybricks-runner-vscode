@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+  <!-- MAXIMIZED FILLED OUTLINE USING EVEN-ODD (leaves a hollow center) -->
+  <!-- studs (oversized) -->
+  <rect x="2" y="1.5" width="4.5" height="4.5" rx="0.8" fill="#d7dae0"/>
+  <rect x="9.75" y="1.5" width="4.5" height="4.5" rx="0.8" fill="#d7dae0"/>
+  <rect x="17.5" y="1.5" width="4.5" height="4.5" rx="0.8" fill="#d7dae0"/>
+  <!-- outer rect filled, inner rect cut out -> thick outline -->
+  <path fill="#d7dae0" fill-rule="evenodd" d="
+    M0,6 h24 v18 h-24 z
+    M3,9 h18 v12 h-18 z
+  "/>
+  <!-- play glyph filled -->
+  <path fill="#d7dae0" d="M10 12 L16 15 L10 18 Z"/>
+</svg>

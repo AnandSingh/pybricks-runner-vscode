@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+  <!-- MAXIMIZED FILLED OUTLINE, HEAVIER BORDER -->
+  <!-- studs (largest allowed without clipping) -->
+  <rect x="1.5" y="1" width="5" height="5" rx="0.9" fill="#d7dae0"/>
+  <rect x="9.5" y="1" width="5" height="5" rx="0.9" fill="#d7dae0"/>
+  <rect x="17.5" y="1" width="5" height="5" rx="0.9" fill="#d7dae0"/>
+  <!-- thicker outline via larger cutout margin -->
+  <path fill="#d7dae0" fill-rule="evenodd" d="
+    M0,5.5 h24 v18.5 h-24 z
+    M4,9.5 h16 v10.5 h-16 z
+  "/>
+  <!-- play glyph -->
+  <path fill="#d7dae0" d="M9.5 12.5 L16.2 16 L9.5 19.5 Z"/>
+</svg>
