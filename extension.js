@@ -4,25 +4,54 @@ const vscode = require('vscode');
 const { exec } = require('child_process');
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 
 // -----------------------------
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
-function updateStatusBarText(statusBarItem) {
-	let robotName = 'LEGO Bricks';
-	const workspaceFolders = vscode.workspace.workspaceFolders;
-	if (workspaceFolders && workspaceFolders.length > 0) {
-		const workspacePath = workspaceFolders[0].uri.fsPath;
-		const robotNameFile = path.join(workspacePath, '.robotName');
-		try {
-			if (fs.existsSync(robotNameFile)) {
-				const name = fs.readFileSync(robotNameFile, 'utf8').trim();
-				if (name) robotName = name;
-			}
-		} catch (err) {
-			console.warn('Failed to read .robotName:', err.message);
-		}
+
+// Global state storage keys
+let globalState;
+
+function getRobotName() {
+	return globalState.get('selectedRobotName', 'LEGO Bricks');
+}
+
+function setRobotName(name) {
+	return globalState.update('selectedRobotName', name);
+}
+
+function getRobotNameList() {
+	return globalState.get('robotNameList', []);
+}
+
+function setRobotNameList(list) {
+	return globalState.update('robotNameList', list);
+}
+
+function getPybricksdevCommand() {
+	// Check for pybricksdev in standard venv locations first
+	const homeDir = os.homedir();
+	const venvDir = path.join(homeDir, '.pybricks-venv');
+
+	let venvPybricksdev;
+	if (process.platform === 'win32') {
+		venvPybricksdev = path.join(venvDir, 'Scripts', 'pybricksdev.exe');
+	} else {
+		venvPybricksdev = path.join(venvDir, 'bin', 'pybricksdev');
 	}
+
+	// Check if venv pybricksdev exists
+	if (fs.existsSync(venvPybricksdev)) {
+		return `"${venvPybricksdev}"`;
+	}
+
+	// Fallback to system pybricksdev
+	return 'pybricksdev';
+}
+
+function updateStatusBarText(statusBarItem) {
+	const robotName = getRobotName();
 	statusBarItem.text = `$(rocket) Run on ${robotName}`;
 	statusBarItem.tooltip = `Run current Python file on ${robotName}`;
 	statusBarItem.show();
@@ -68,43 +97,19 @@ class SettingsView {
 			if (msg?.type === 'updateSetting') {
 				const cfg = vscode.workspace.getConfiguration('pybricksRunner');
 				await cfg.update(msg.key, msg.value, vscode.ConfigurationTarget.Global);
-
-				// Keep your .robotName flow in sync when robotName changes
-				if (msg.key === 'robotName') {
-					const ws = vscode.workspace.workspaceFolders;
-					if (ws?.length) {
-						try {
-							fs.writeFileSync(path.join(ws[0].uri.fsPath, '.robotName'), (msg.value || '') + '\n');
-						} catch (e) {
-							vscode.window.showErrorMessage(`Failed to update .robotName: ${e.message}`);
-						}
-					}
-				}
 				vscode.window.showInformationMessage('Pybricks setting updated: ' + msg.key);
 			}
 		});
 
 		const cfg = vscode.workspace.getConfiguration('pybricksRunner');
-		//const robotName = cfg.get('robotName') ?? '';
 		const autoConn = cfg.get('autoConnectOnStartup') ?? false;
-		//const autoRun = cfg.get('autoRunOnSave') ?? false;
-
-		/*<div style="margin:8px 0;">
-		    <label>Default Robot</label><br/>
-		    <input id="robotName" value="${robotName}" style="width:100%;"/>
-		  </div>*/
-		//<div><label><input id="autoRunOnSave" type="checkbox" ${autoRun?'checked':''}/> Auto-run on save</label></div>
-		// vscode.postMessage({type:'updateSetting', key:'robotName', value:document.getElementById('robotName').value});
-		// vscode.postMessage({type:'updateSetting', key:'autoRunOnSave', value:document.getElementById('autoRunOnSave').checked});
-
-
 
 		view.webview.html = /* html */`
 		<section style="padding:12px;font-family:var(--vscode-font-family)">
 		  <h3 style="margin:0 0 8px">Quick Settings</h3>
 
 		  <div><label><input id="autoConnect" type="checkbox" ${autoConn?'checked':''}/> Auto-connect on startup</label></div>
-		  
+
 		  <button id="save" style="margin-top:10px;">Save</button>
 		  <script>
 		    const vscode = acquireVsCodeApi();
@@ -137,27 +142,16 @@ class LogsView {
 // -----------------------------
 // NEW: helpers for Devices view
 
-function readRobotFiles() {
-	const ws = vscode.workspace.workspaceFolders;
-	let robotName = 'LEGO Bricks';
-	let list = [];
-	if (ws?.length) {
-		const root = ws[0].uri.fsPath;
-		const nameFile = path.join(root, '.robotName');
-		const listFile = path.join(root, '.robotNameList');
-		try { if (fs.existsSync(nameFile)) robotName = fs.readFileSync(nameFile, 'utf8').trim() || robotName; } catch (_) {}
-		try {
-			if (fs.existsSync(listFile)) {
-				list = fs.readFileSync(listFile, 'utf8').split('\n').map(s => s.trim()).filter(Boolean);
-			}
-		} catch (_) {}
-	}
+function readRobotData() {
+	const robotName = getRobotName();
+	const list = getRobotNameList();
 	return { robotName, list };
 }
 
 function scanDevicesWithPybricksdev() {
 	return new Promise(resolve => {
-		exec('pybricksdev devices', { timeout: 4000 }, (err, stdout) => {
+		const pybricksdevCmd = getPybricksdevCommand();
+		exec(`${pybricksdevCmd} devices`, { timeout: 4000 }, (err, stdout) => {
 			if (err || !stdout) {
 				resolve([]);
 				return;
@@ -170,15 +164,15 @@ function scanDevicesWithPybricksdev() {
 }
 
 async function getDeviceListSnapshot(currentConnectedName) {
-	const { robotName, list } = readRobotFiles();
+	const { robotName, list } = readRobotData();
 	let devices = await scanDevicesWithPybricksdev();
 
-	// Merge in known names from .robotNameList (fallback)
+	// Merge in known names from saved list (fallback)
 	for (const n of list) {
 		if (!devices.find(d => d.name === n)) devices.push({ name: n, connected: false });
 	}
-	// Ensure .robotName appears at least once
-	if (!devices.find(d => d.name === robotName)) {
+	// Ensure current robot name appears at least once
+	if (robotName && !devices.find(d => d.name === robotName)) {
 		devices.unshift({ name: robotName, connected: false });
 	}
 	// Mark connected flag based on our current session state
@@ -186,10 +180,36 @@ async function getDeviceListSnapshot(currentConnectedName) {
 }
 
 // -----------------------------
-// ACTIVATE: 
+// ACTIVATE:
 
 function activate(context) {
-	console.log('Extension "pybricks-runner" is now active!'); // original log
+	console.log('Extension "pybricks-runner" is now active!');
+
+	// Initialize global state
+	globalState = context.globalState;
+
+	// One-time migration: read from old .robotName/.robotNameList files if they exist
+	const workspaceFolders = vscode.workspace.workspaceFolders;
+	if (workspaceFolders && workspaceFolders.length > 0 && !globalState.get('migrated')) {
+		const workspacePath = workspaceFolders[0].uri.fsPath;
+		const robotNameFile = path.join(workspacePath, '.robotName');
+		const listFile = path.join(workspacePath, '.robotNameList');
+
+		try {
+			if (fs.existsSync(robotNameFile)) {
+				const name = fs.readFileSync(robotNameFile, 'utf8').trim();
+				if (name) setRobotName(name);
+			}
+			if (fs.existsSync(listFile)) {
+				const list = fs.readFileSync(listFile, 'utf8').split('\n').map(s => s.trim()).filter(Boolean);
+				if (list.length > 0) setRobotNameList(list);
+			}
+			globalState.update('migrated', true);
+			console.log('Migrated robot names from workspace files to global state');
+		} catch (err) {
+			console.warn('Migration failed:', err.message);
+		}
+	}
 
 	// === Status bar ===
 	const statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
@@ -198,19 +218,6 @@ function activate(context) {
 	updateStatusBarText(statusBarItem);
 
 	let pybricksTerminal;
-	const workspaceFolders = vscode.workspace.workspaceFolders;
-	if (workspaceFolders && workspaceFolders.length > 0) {
-		const workspacePath = workspaceFolders[0].uri.fsPath;
-		const robotNameFile = path.join(workspacePath, '.robotName');
-		if (fs.existsSync(robotNameFile)) {
-			const fileWatcher = fs.watch(robotNameFile, (eventType) => {
-				if (eventType === 'change') updateStatusBarText(statusBarItem);
-			});
-			context.subscriptions.push({ dispose: () => fileWatcher.close() });
-		} else {
-			console.warn(`.robotName not found — skipping fs.watch setup until user selects a robot.`);
-		}
-	}
 
 	// === Sidebar providers ===
 	const devicesProvider = new DevicesProvider();
@@ -232,13 +239,11 @@ function activate(context) {
 		}),
 
 		vscode.commands.registerCommand('pybricks.connect', async (name) => {
-			// For now, we "select" the robot and mark it connected in the tree.
+			// Select the robot and mark it connected in the tree
 			try {
-				const ws = vscode.workspace.workspaceFolders;
-				if (ws?.length) {
-					fs.writeFileSync(path.join(ws[0].uri.fsPath, '.robotName'), (name || '') + '\n');
-				}
+				await setRobotName(name || 'LEGO Bricks');
 				currentConnectedName = name || null;
+				updateStatusBarText(statusBarItem);
 				await vscode.commands.executeCommand('pybricks.refreshDevices');
 				logsView.append(`[info] Selected device "${name}". Will use it for Run.`);
 				vscode.window.showInformationMessage(`Selected device: ${name}`);
@@ -258,24 +263,144 @@ function activate(context) {
 		})
 	);
 
-	// === ORIGINAL COMMANDS (unchanged) ===
-	context.subscriptions.push(vscode.commands.registerCommand('pybricks.run', () => {
+	// === ORIGINAL COMMANDS (with remote workspace support) ===
+	context.subscriptions.push(vscode.commands.registerCommand('pybricks.run', async () => {
 		const robotName = updateStatusBarText(statusBarItem);
 		const editor = vscode.window.activeTextEditor;
 		if (!editor) { vscode.window.showErrorMessage('No active Python file!'); return; }
 		const document = editor.document;
-		const filePath = document.fileName;
-		if (!filePath.endsWith('.py')) { vscode.window.showErrorMessage('Please open a Python (.py) file.'); return; }
+		const originalFilePath = document.fileName;
+		if (!originalFilePath.endsWith('.py')) { vscode.window.showErrorMessage('Please open a Python (.py) file.'); return; }
 
-		let cmd = `pybricksdev run ble "${filePath}"`;
-		if (robotName && robotName !== 'LEGO Bricks') cmd = `pybricksdev run ble --name "${robotName}" "${filePath}"`;
+		let filePath = originalFilePath;
+		const isRemote = vscode.env.remoteName !== undefined;
 
-		if (!pybricksTerminal) pybricksTerminal = vscode.window.createTerminal("Pybricks");
-		pybricksTerminal.show(true);
-		pybricksTerminal.sendText(cmd);
+		// If workspace is remote, sync workspace files to local temp directory
+		if (isRemote) {
+			try {
+				const workspaceFolders = vscode.workspace.workspaceFolders;
+				if (!workspaceFolders || workspaceFolders.length === 0) {
+					vscode.window.showErrorMessage('No workspace folder open.');
+					return;
+				}
 
-		vscode.window.showInformationMessage(`Programming "${path.basename(filePath)}" to ${robotName}...`);
-		logsView.append(`[run] ${path.basename(filePath)} -> ${robotName}`);
+				const workspaceRoot = workspaceFolders[0].uri;
+				const workspacePath = workspaceRoot.fsPath;
+				const tempDir = path.join(os.tmpdir(), 'pybricks-runner', path.basename(workspacePath));
+
+				// Create temp directory if it doesn't exist
+				if (!fs.existsSync(tempDir)) {
+					fs.mkdirSync(tempDir, { recursive: true });
+				}
+
+				logsView.append(`[remote] Syncing workspace files to local temp directory...`);
+
+				// Find all .py files in the workspace
+				const pythonFiles = await vscode.workspace.findFiles('**/*.py', '**/.*');
+
+				// Copy all Python files while maintaining directory structure
+				for (const fileUri of pythonFiles) {
+					const relativePath = path.relative(workspacePath, fileUri.fsPath);
+					const targetPath = path.join(tempDir, relativePath);
+					const targetDir = path.dirname(targetPath);
+
+					// Create directory if it doesn't exist
+					if (!fs.existsSync(targetDir)) {
+						fs.mkdirSync(targetDir, { recursive: true });
+					}
+
+					// Read file content from remote workspace
+					const fileContent = await vscode.workspace.fs.readFile(fileUri);
+					fs.writeFileSync(targetPath, fileContent);
+				}
+
+				// Calculate the local path for the current file
+				const relativeFilePath = path.relative(workspacePath, originalFilePath);
+				filePath = path.join(tempDir, relativeFilePath);
+
+				logsView.append(`[remote] Synced ${pythonFiles.length} Python file(s)`);
+				logsView.append(`[info] Running pybricksdev locally on ${robotName}...`);
+			} catch (err) {
+				vscode.window.showErrorMessage(`Failed to sync files from remote workspace: ${err.message}`);
+				logsView.append(`[error] ${err.message}`);
+				return;
+			}
+		}
+
+		// Get pybricksdev command (checks venv first)
+		const pybricksdevCmd = getPybricksdevCommand();
+
+		// Determine working directory and file path for command
+		let filePathForCommand;
+		let workingDirectory;
+
+		if (isRemote) {
+			// For remote workspaces, use relative path from workspace root
+			const workspaceFolders = vscode.workspace.workspaceFolders;
+			const workspacePath = workspaceFolders[0].uri.fsPath;
+			const tempWorkspaceDir = path.join(os.tmpdir(), 'pybricks-runner', path.basename(workspacePath));
+
+			filePathForCommand = path.relative(workspacePath, originalFilePath);
+			workingDirectory = tempWorkspaceDir;
+		} else {
+			// For local workspaces, use full path
+			filePathForCommand = filePath;
+			workingDirectory = process.cwd();
+		}
+
+		let cmd = `${pybricksdevCmd} run ble "${filePathForCommand}"`;
+		if (robotName && robotName !== 'LEGO Bricks') cmd = `${pybricksdevCmd} run ble --name "${robotName}" "${filePathForCommand}"`;
+
+		// For remote workspaces, execute locally using exec() instead of terminal
+		// This ensures the command runs on the local machine where Bluetooth is available
+		if (isRemote) {
+			vscode.window.showInformationMessage(`Programming "${path.basename(originalFilePath)}" to ${robotName}...`);
+			logsView.append(`[exec] ${cmd}`);
+			logsView.append(`[cwd] ${workingDirectory}`);
+
+			// Set working directory to the temp workspace root so imports work correctly
+			const execOptions = {
+				timeout: 60000,
+				cwd: workingDirectory
+			};
+
+			exec(cmd, execOptions, (err, stdout, stderr) => {
+				if (stdout) {
+					logsView.append(stdout);
+					console.log(stdout);
+				}
+				if (stderr) {
+					logsView.append('[stderr] ' + stderr);
+					console.error(stderr);
+				}
+				if (err) {
+					// Check if it's a "command not found" error
+					if (err.message.includes('command not found') || err.message.includes('not recognized')) {
+						const installMsg = 'pybricksdev is not installed on your local machine. Click "Install Guide" for instructions.';
+						vscode.window.showErrorMessage(installMsg, 'Install Guide', 'Dismiss').then(selection => {
+							if (selection === 'Install Guide') {
+								vscode.env.openExternal(vscode.Uri.parse('https://github.com/pybricks/pybricksdev#installation'));
+							}
+						});
+						logsView.append('[error] pybricksdev not found. Please install it locally: pip install pybricksdev');
+					} else {
+						vscode.window.showErrorMessage(`Error running pybricksdev: ${err.message}`);
+						logsView.append(`[error] ${err.message}`);
+					}
+				} else {
+					vscode.window.showInformationMessage(`Successfully programmed ${robotName}!`);
+					logsView.append('[success] Program uploaded and executed.');
+				}
+			});
+		} else {
+			// For local workspaces, use terminal (original behavior)
+			if (!pybricksTerminal) pybricksTerminal = vscode.window.createTerminal("Pybricks");
+			pybricksTerminal.show(true);
+			pybricksTerminal.sendText(cmd);
+
+			vscode.window.showInformationMessage(`Programming "${path.basename(originalFilePath)}" to ${robotName}...`);
+			logsView.append(`[run] ${path.basename(originalFilePath)} -> ${robotName}`);
+		}
 	}));
 
 	vscode.window.onDidCloseTerminal(terminal => {
@@ -288,51 +413,40 @@ function activate(context) {
 	});
 
 	context.subscriptions.push(vscode.commands.registerCommand('pybricks.selectRobot', async () => {
-		const workspaceFolders = vscode.workspace.workspaceFolders;
-		if (!workspaceFolders || workspaceFolders.length === 0) {
-			vscode.window.showErrorMessage('No workspace folder open.');
-			return;
-		}
-		const workspacePath = workspaceFolders[0].uri.fsPath;
-		const listFile = path.join(workspacePath, '.robotNameList');
-		const robotNameFile = path.join(workspacePath, '.robotName');
+		// Get existing robot list from global state
+		let robotList = getRobotNameList();
 
-		let robotList = [];
-		if (fs.existsSync(listFile)) {
-			try {
-				const content = fs.readFileSync(listFile, 'utf8');
-				robotList = content.split('\n').map(name => name.trim()).filter(name => name);
-			} catch (err) {
-				console.warn('Could not read .robotNameList:', err.message);
-			}
-		}
-		if (!robotList.includes('Custom...')) robotList.push('Custom...');
+		// Always add "Custom..." option at the end
+		const options = [...robotList, 'Custom...'];
 
-		const selected = await vscode.window.showQuickPick(robotList, { placeHolder: 'Select your LEGO robot name' });
+		const selected = await vscode.window.showQuickPick(options, {
+			placeHolder: 'Select your LEGO robot name or choose Custom to add a new one'
+		});
 		if (!selected) return;
 
 		let robotName = selected;
 		if (selected === 'Custom...') {
-			const custom = await vscode.window.showInputBox({ prompt: 'Enter a custom robot name' });
+			const custom = await vscode.window.showInputBox({
+				prompt: 'Enter a custom robot name',
+				placeHolder: 'e.g., SPIKE Prime, EV3, MyRobot'
+			});
 			if (!custom) return;
 			robotName = custom.trim();
+
+			// Add to list if not already present
 			if (!robotList.includes(robotName)) {
-				try {
-					fs.appendFileSync(listFile, robotName + '\n');
-					vscode.window.showInformationMessage(`"${robotName}" added to .robotNameList`);
-				} catch (err) {
-					vscode.window.showErrorMessage(`Failed to update .robotNameList: ${err.message}`);
-				}
+				robotList.push(robotName);
+				await setRobotNameList(robotList);
+				vscode.window.showInformationMessage(`"${robotName}" added to robot list`);
 			}
 		}
-		try {
-			fs.writeFileSync(robotNameFile, robotName + '\n');
-			vscode.window.showInformationMessage(`Robot name set to "${robotName}"`);
-			currentConnectedName = robotName;
-			await vscode.commands.executeCommand('pybricks.refreshDevices');
-		} catch (err) {
-			vscode.window.showErrorMessage(`Failed to update .robotName: ${err.message}`);
-		}
+
+		// Set the selected robot as current
+		await setRobotName(robotName);
+		updateStatusBarText(statusBarItem);
+		currentConnectedName = robotName;
+		await vscode.commands.executeCommand('pybricks.refreshDevices');
+		vscode.window.showInformationMessage(`Robot name set to "${robotName}"`);
 	}));
 
 	// Web Bluetooth runner (original)
@@ -341,20 +455,7 @@ function activate(context) {
 		if (!editor) { vscode.window.showErrorMessage('No active Python file!'); return; }
 		const scriptContent = editor.document.getText();
 
-		let robotName = 'LEGO Bricks';
-		const workspaceFolders = vscode.workspace.workspaceFolders;
-		if (workspaceFolders && workspaceFolders.length > 0) {
-			const workspacePath = workspaceFolders[0].uri.fsPath;
-			const robotNameFile = path.join(workspacePath, '.robotName');
-			try {
-				if (fs.existsSync(robotNameFile)) {
-					const name = fs.readFileSync(robotNameFile, 'utf8').trim();
-					if (name) robotName = name;
-				}
-			} catch (err) {
-				console.warn('Could not read .robotName:', err.message);
-			}
-		}
+		const robotName = getRobotName();
 
 		const panel = vscode.window.createWebviewPanel(
 			'pybricksWebBluetooth',
@@ -383,6 +484,31 @@ function activate(context) {
 
 	// Initial device list population
 	vscode.commands.executeCommand('pybricks.refreshDevices').then(() => {});
+
+	// Check if pybricksdev is installed (only show warning once)
+	if (!globalState.get('pybricksdevChecked')) {
+		const pybricksdevCmd = getPybricksdevCommand();
+		exec(`${pybricksdevCmd} --version`, { timeout: 3000 }, (err) => {
+			if (err) {
+				const msg = 'pybricksdev is not installed. Click "Easy Install" to run the installer, or "Manual Install" for instructions.';
+				vscode.window.showWarningMessage(msg, 'Easy Install', 'Manual Install', 'Dismiss').then(selection => {
+					if (selection === 'Easy Install') {
+						// Open the installers folder in file explorer
+						const installersPath = path.join(context.extensionPath, 'installers');
+						vscode.env.openExternal(vscode.Uri.file(installersPath));
+						vscode.window.showInformationMessage(
+							process.platform === 'win32'
+								? 'Double-click "install-windows.bat" to install pybricksdev'
+								: 'Double-click "install-macos.command" to install pybricksdev'
+						);
+					} else if (selection === 'Manual Install') {
+						vscode.env.openExternal(vscode.Uri.parse('https://github.com/pybricks/pybricksdev#installation'));
+					}
+				});
+			}
+			globalState.update('pybricksdevChecked', true);
+		});
+	}
 }
 
 // (original)

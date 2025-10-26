@@ -19,6 +19,8 @@
 - **One-click programming:** Easily program your LEGO brick directly from the VSCode editor.
 - **Simple integration:** Runs the `pybricksdev run` command directly in the integrated VSCode terminal.
 - **Immediate feedback:** Quickly see output and errors directly within VSCode.
+- **Remote workspace support:** Works seamlessly with SSH, WSL, and Dev Container workspaces - automatically syncs files from remote to local machine for Bluetooth connectivity.
+- **Multi-file projects:** Supports projects with multiple Python files and local imports - directory structure is maintained automatically.
 
 ## Screenshots
 
@@ -41,20 +43,115 @@
 
 ![Select Robot](assets/select-robot.gif)
 
-1. Click the ⚙️ `Select or Change Robot` button top right or Press Ctrl+Shift+P → Select LEGO Robot 
-2. Choose from the list in .robotNameList or enter a custom name
-3. .robotName is updated
+1. Click the ⚙️ `Select or Change Robot` button top right or Press Ctrl+Shift+P → Select LEGO Robot
+2. Choose from the saved list or select "Custom..." to add a new robot
+3. Robot names are saved automatically
 4. Status bar updates instantly
 
 
-## 🛠️ Installation
-
-### Prerequisites
+## Prerequisites
 
 - [Visual Studio Code](https://code.visualstudio.com/)
-- [pybricksdev](https://github.com/pybricks/pybricksdev) (`pip install pybricksdev`)
+- **Python 3.8 or higher** installed on your **local machine**
+- **pybricksdev** installed on your **local machine** where your Bluetooth hardware is connected
 
-## 🛠️ Installation
+**Important:** Even when using remote workspaces (SSH/WSL/Dev Containers), pybricksdev must be installed **locally** on the machine where your SPIKE Prime hub connects via Bluetooth.
+
+---
+
+## 📦 Installing pybricksdev (Required)
+
+### **🚀 Easy Install (Recommended for Students)**
+
+We provide simple installers that you can just double-click - no command line needed!
+
+#### **macOS**
+
+1. **Download the extension** (if not already installed)
+2. **Open the installers folder:**
+   - Find the extension folder: `~/.vscode/extensions/anandsingh.pybricks-runner-*/installers/`
+   - Or click "Easy Install" when the extension shows the setup message
+3. **Double-click** `install-macos.command`
+4. **Follow the prompts** - it will automatically:
+   - Check if Python is installed
+   - Create a virtual environment
+   - Install pybricksdev
+   - Set up everything for you!
+
+#### **Windows**
+
+1. **Download the extension** (if not already installed)
+2. **Open the installers folder:**
+   - Find the extension folder: `%USERPROFILE%\.vscode\extensions\anandsingh.pybricks-runner-*\installers\`
+   - Or click "Easy Install" when the extension shows the setup message
+3. **Double-click** `install-windows.bat`
+4. **Follow the prompts** - it will automatically:
+   - Check if Python is installed
+   - Create a virtual environment
+   - Install pybricksdev
+   - Set up everything for you!
+
+**Note:** If Python is not installed, the installer will guide you to download it from [python.org](https://www.python.org/downloads/)
+
+---
+
+### **💻 Manual Install (Advanced Users)**
+
+If you prefer to install manually or already have Python set up:
+
+#### **macOS / Linux**
+
+```bash
+pip install pybricksdev
+# or
+pip3 install pybricksdev
+
+# Verify installation
+pybricksdev --version
+```
+
+**Troubleshooting macOS:**
+- If `pip` is not found, install Python from [python.org](https://www.python.org/downloads/)
+- If you get permission errors, use: `pip install --user pybricksdev`
+- If command not found after install, add to PATH:
+  ```bash
+  export PATH="$HOME/Library/Python/3.x/bin:$PATH"
+  ```
+  (Add this line to `~/.zshrc` or `~/.bash_profile` to make it permanent)
+
+#### **Windows**
+
+```cmd
+pip install pybricksdev
+# or
+python -m pip install pybricksdev
+
+# Verify installation
+pybricksdev --version
+```
+
+**Troubleshooting Windows:**
+- If `pip` is not found, install Python from [python.org](https://www.python.org/downloads/) and check "Add Python to PATH" during installation
+- If you get permission errors, try running Command Prompt as Administrator
+- If command not found after install, add Python Scripts folder to PATH:
+  - Search for "Environment Variables" in Windows
+  - Add `C:\Users\YourUsername\AppData\Local\Programs\Python\Python3x\Scripts` to PATH
+
+---
+
+### **Verify Bluetooth Connectivity**
+
+After installing pybricksdev, test if your hub is detected:
+
+```bash
+pybricksdev devices
+```
+
+This should list your SPIKE Prime or other LEGO hubs if they're turned on and Bluetooth is enabled.
+
+---
+
+## 🛠️ Extension Installation
 
 ### 🧩 From VS Code Marketplace (Recommended for VS Code)
 
@@ -122,16 +219,110 @@ The extension will execute:
 pybricksdev run yourfile.py
 ```
 
+## 🌐 Remote Workspace Support
+
+This extension fully supports remote development environments including:
+
+- **SSH Remote:** Connect to remote servers while programming locally
+- **WSL (Windows Subsystem for Linux):** Develop in Linux while flashing from Windows
+- **Dev Containers:** Work in containerized environments seamlessly
+
+### How It Works
+
+When you're using a remote workspace:
+
+1. The extension automatically detects the remote environment
+2. When you click "Run on Robot", it syncs **all Python files** from your remote workspace to your local machine's temp directory (`/tmp/pybricks-runner` on Mac/Linux or `%TEMP%\pybricks-runner` on Windows)
+3. Directory structure is maintained, so **local imports work correctly**
+4. Runs `pybricksdev` **locally** (not in the remote terminal) with the synced files
+5. Your SPIKE Prime connects via Bluetooth to your local machine
+6. Output appears in the **Pybricks Runner** sidebar under "Logs" (not in the terminal)
+
+**Multi-File Projects Supported:**
+If your project has multiple Python files with imports like:
+```python
+from pybricks.hubs import PrimeHub
+from my_helpers import move_forward  # Local import
+from utils.constants import SPEED    # Local import from subfolder
+```
+The extension automatically syncs all `.py` files while maintaining your project structure, so all imports work seamlessly!
+
+**Note:** For local workspaces, output still appears in the integrated terminal as usual.
+
+### Setup Requirements
+
+**No additional setup required!** The extension handles everything automatically. Just ensure:
+
+✅ `pybricksdev` is installed on your **local machine** (where your laptop's Bluetooth is)
+✅ Your SPIKE Prime hub is paired with your **local machine**
+✅ Bluetooth is enabled on your **local machine**
+
+The remote machine doesn't need pybricksdev installed since the extension runs locally.
+
+### Supported Platforms
+
+- ✅ **Windows:** Full support (SSH, WSL, Dev Containers)
+- ✅ **macOS:** Full support (SSH, Dev Containers)
+- ✅ **Linux:** Full support (SSH, Dev Containers)
+
 ## 🧩 Troubleshooting
 
-- **Error: 'pybricksdev' not found**  
-  Make sure you've installed it globally using `pip install pybricksdev`.
+### **Error: 'pybricksdev: command not found'**
 
-- **Robot not connecting**  
-  Ensure Bluetooth is enabled and your robot is turned on. Try re-pairing via your OS.
+This means pybricksdev is not installed on your **local machine**. Follow these steps:
 
-- **Web Bluetooth not available**  
-  Check if you're using a Chromium browser and have enabled the `chrome://flags/#enable-web-bluetooth` flag.
+**On macOS/Linux:**
+```bash
+# Install pybricksdev
+pip install pybricksdev
+
+# Or with pip3
+pip3 install pybricksdev
+
+# Verify it's installed
+pybricksdev --version
+```
+
+**On Windows:**
+```cmd
+# Install pybricksdev
+pip install pybricksdev
+
+# Or with python -m pip
+python -m pip install pybricksdev
+
+# Verify it's installed
+pybricksdev --version
+```
+
+If still not working after installation:
+- **macOS/Linux:** Check if Python's bin directory is in your PATH
+- **Windows:** Restart VSCode after installation, or add Python Scripts folder to PATH
+- See detailed installation instructions above
+
+---
+
+### **Robot not connecting**
+
+- Ensure Bluetooth is enabled on your **local machine**
+- Turn on your SPIKE Prime hub
+- Run `pybricksdev devices` in terminal to check if the hub is detected
+- Try re-pairing the hub via your OS Bluetooth settings
+
+---
+
+### **Remote Workspace Issues**
+
+- Extension must run locally - check that `"extensionKind": ["ui"]` is set in package.json
+- pybricksdev must be installed on your local machine, NOT the remote machine
+- Check the "Pybricks Runner" sidebar "Logs" view for output when using remote workspaces
+
+---
+
+### **Web Bluetooth not available**
+
+- Check if you're using a Chromium browser and have enabled the `chrome://flags/#enable-web-bluetooth` flag
+- Web Bluetooth only works in secure contexts (HTTPS or localhost)
 
 
 ---
