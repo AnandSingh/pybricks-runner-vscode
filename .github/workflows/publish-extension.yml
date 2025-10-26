@@ -22,21 +22,17 @@ jobs:
       run: npm install
 
     - name: Package Extension
-      run: npx vsce package
+      run: npx @vscode/vsce package
 
     - name: Publish to VS Code Marketplace
-      run: npx vsce publish --packagePath $(ls *.vsix)
-      env:
-        VSCE_PAT: ${{ secrets.VSCE_TOKEN }}
+      run: npx @vscode/vsce publish -p ${{ secrets.VSCE_TOKEN }}
 
     - name: Publish to Open VSX
-      run: npx ovsx publish --packagePath $(ls *.vsix)
-      env:
-        OVSX_PAT: ${{ secrets.OVSX_TOKEN }}
+      run: npx ovsx publish -p ${{ secrets.OVSX_TOKEN }}
          
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v1
       with:
         files: '*.vsix'
       env:
-        token: ${{ secrets.GH_RELEASE_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GH_RELEASE_TOKEN }}
