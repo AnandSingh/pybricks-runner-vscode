@@ -2,7 +2,7 @@
   "name": "pybricks-runner",
   "displayName": "Pybricks Runner",
   "description": "Program LEGO SPIKE Prime and EV3 robots using Pybricks. Supports remote workspaces (SSH/WSL/Dev Containers) and multi-file projects.",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "publisher": "AnandSingh",
   "icon": "pybricks-runner-icon.png",
   "engines": {
@@ -16,6 +16,7 @@
     "Other"
   ],
   "extensionKind": [
+    "workspace",
     "ui"
   ],
   "activationEvents": [

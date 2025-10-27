@@ -191,7 +191,7 @@ code .
 3. Install dependencies and package the extension:
 
 ```bash
-npm install -g vsce
+npm install -g @vscode/vsce
 npm install
 vsce package
 ```
@@ -350,6 +350,124 @@ To enable Web Bluetooth:
 
 After enabling the flag, reload your VSCode web interface. Web Bluetooth functionality will then be available and reliable.
 
+
+## 📦 Manual Publishing (For Maintainers)
+
+Since the GitHub workflow is currently not working, here's how to manually publish the extension to both marketplaces:
+
+### Prerequisites
+
+You'll need the following tokens:
+
+1. **VS Code Marketplace Token (VSCE_TOKEN)**
+   - Go to [Azure DevOps](https://dev.azure.com/)
+   - Create a Personal Access Token with `Marketplace (Manage)` scope
+   - Organization: `All accessible organizations`
+
+2. **Open VSX Token (OVSX_TOKEN)**
+   - Go to [Open VSX Registry](https://open-vsx.org/)
+   - Sign in and generate a Personal Access Token
+
+3. **GitHub Token (Optional for releases)**
+   - Go to GitHub Settings → Developer settings → Personal access tokens
+   - Generate token with `repo` scope
+
+### Publishing Steps
+
+#### 1. Update Version
+
+```bash
+# Update version in package.json
+npm version patch  # or minor, or major
+```
+
+#### 2. Package the Extension
+
+```bash
+# Install vsce if not already installed
+npm install -g @vscode/vsce
+
+# Package the extension
+vsce package
+```
+
+This creates a `.vsix` file like `pybricks-runner-0.3.1.vsix`
+
+#### 3. Publish to VS Code Marketplace
+
+```bash
+# Using token directly
+vsce publish -p YOUR_VSCE_TOKEN
+
+# Or if token is in environment variable
+vsce publish -p $VSCE_TOKEN
+```
+
+#### 4. Publish to Open VSX Registry
+
+```bash
+# Install ovsx if not already installed
+npm install -g ovsx
+
+# Publish using token
+npx ovsx publish -p YOUR_OVSX_TOKEN
+
+# Or if token is in environment variable
+npx ovsx publish -p $OVSX_TOKEN
+```
+
+#### 5. Create GitHub Release (Optional)
+
+```bash
+# Create and push a git tag
+git tag v0.3.1
+git push origin v0.3.1
+
+# Then manually create a release on GitHub:
+# - Go to https://github.com/AnandSingh/pybricks-runner-vscode/releases/new
+# - Select the tag you just created
+# - Add release notes
+# - Upload the .vsix file as an asset
+# - Publish release
+```
+
+### Complete Publishing Script
+
+```bash
+#!/bin/bash
+# Save this as publish.sh and run: chmod +x publish.sh && ./publish.sh
+
+# Set your tokens (or load from environment)
+VSCE_TOKEN="your-vsce-token-here"
+OVSX_TOKEN="your-ovsx-token-here"
+
+# Get current version from package.json
+VERSION=$(node -p "require('./package.json').version")
+
+echo "📦 Packaging extension..."
+vsce package
+
+echo "📤 Publishing to VS Code Marketplace..."
+vsce publish -p $VSCE_TOKEN
+
+echo "📤 Publishing to Open VSX Registry..."
+npx ovsx publish -p $OVSX_TOKEN
+
+echo "🏷️  Creating git tag v$VERSION..."
+git tag "v$VERSION"
+git push origin "v$VERSION"
+
+echo "✅ Done! Don't forget to create a GitHub release manually."
+```
+
+### Troubleshooting
+
+- **Authentication failed**: Check that your tokens are valid and have the correct scopes
+- **Version already exists**: Update the version in `package.json` before publishing
+- **Package not found**: Make sure `vsce package` completed successfully
+- **Token expired**: Generate new tokens from the respective platforms
+
+---
 
 ## 🙌 Contributing
 

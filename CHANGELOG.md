@@ -2,6 +2,22 @@
 
 All notable changes to the "pybricks-runner" extension will be documented in this file.
 
+## [0.3.1] - 2025-10-26
+
+### 🐛 Bug Fixes
+- **Fixed code-server and VSCodium compatibility** - Changed `extensionKind` to `["workspace", "ui"]` to ensure extension runs in workspace context where Node.js APIs are available
+- Previously broke for browser-based VS Code environments (code-server, VSCodium) due to incorrect extension kind setting
+
+### 📚 Documentation
+- **Added comprehensive manual publishing guide** for maintainers
+- Documented step-by-step process for publishing to VS Code Marketplace and Open VSX Registry
+- Included token setup instructions and troubleshooting tips
+- Added ready-to-use publishing script
+
+### 🔧 Technical Changes
+- Updated `extensionKind` from `["ui"]` to `["workspace", "ui"]` to support all environments
+- Ensures extension works in VS Code, code-server, VSCodium, and other VS Code-compatible editors
+
 ## [0.3.0] - 2025-01-26
 
 ### 🎉 Major Features
