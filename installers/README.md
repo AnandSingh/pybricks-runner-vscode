@@ -2,6 +2,8 @@
 
 This folder contains simple installers to help you quickly set up pybricksdev on your computer.
 
+**First, install the extension:** [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=AnandSingh.pybricks-runner)
+
 ## 🚀 Quick Start
 
 ### For macOS Users:
@@ -101,6 +103,7 @@ rmdir /s /q "%USERPROFILE%\.pybricks-venv"
 
 ## Need Help?
 
+- Install the extension: [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=AnandSingh.pybricks-runner)
 - Check the main README: [../README.md](../README.md)
 - Open an issue: https://github.com/AnandSingh/pybricks-runner-vscode/issues
 - Pybricksdev documentation: https://github.com/pybricks/pybricksdev

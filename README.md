@@ -11,6 +11,8 @@
 
 **Pybricks Runner** is a VS Code extension that allows you to easily program and run your LEGO SPIKE Prime, EV3, and other Pybricks-compatible robots directly from Visual Studio Code using the `pybricksdev` command-line tool.
 
+**[Install from VS Code Marketplace →](https://marketplace.visualstudio.com/items?itemName=AnandSingh.pybricks-runner)**
+
 ## Features
 
 - **One-click programming:** Run your Python code on LEGO robots with a single click
@@ -67,7 +69,11 @@ This should list your SPIKE Prime or other LEGO hubs if they're turned on and Bl
 
 ## Installation
 
-### From VS Code Marketplace
+### From VS Code Marketplace (Recommended)
+
+**Install directly from:** [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=AnandSingh.pybricks-runner)
+
+Or install within VS Code:
 
 1. Open VS Code
 2. Go to Extensions (`Ctrl+Shift+X` / `Cmd+Shift+X`)

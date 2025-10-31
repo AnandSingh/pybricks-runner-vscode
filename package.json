@@ -63,6 +63,10 @@
       {
         "command": "pybricks.disconnect",
         "title": "Pybricks: Disconnect"
+      },
+      {
+        "command": "pybricks.showDebugInfo",
+        "title": "Pybricks: Show Debug Info"
       }
     ],
     "menus": {

@@ -26,7 +26,7 @@ function setRobotNameList(list) {
 	return globalState.update('robotNameList', list);
 }
 
-function getPybricksdevCommand() {
+function getPybricksdevCommand(showDebug = false) {
 	const homeDir = os.homedir();
 	const venvDir = path.join(homeDir, '.pybricks-venv');
 
@@ -35,6 +35,13 @@ function getPybricksdevCommand() {
 		venvPybricksdev = path.join(venvDir, 'Scripts', 'pybricksdev.exe');
 	} else {
 		venvPybricksdev = path.join(venvDir, 'bin', 'pybricksdev');
+	}
+
+	if (showDebug) {
+		console.log('[Pybricks Debug] Home dir:', homeDir);
+		console.log('[Pybricks Debug] Venv dir:', venvDir);
+		console.log('[Pybricks Debug] Looking for:', venvPybricksdev);
+		console.log('[Pybricks Debug] File exists:', fs.existsSync(venvPybricksdev));
 	}
 
 	if (fs.existsSync(venvPybricksdev)) {
@@ -184,6 +191,54 @@ function activate(context) {
 			await vscode.commands.executeCommand('pybricks.refreshDevices');
 		}),
 
+		vscode.commands.registerCommand('pybricks.showDebugInfo', async () => {
+			const homeDir = os.homedir();
+			const venvDir = path.join(homeDir, '.pybricks-venv');
+			const venvPybricksdev = path.join(venvDir,
+				process.platform === 'win32' ? 'Scripts\\pybricksdev.exe' : 'bin/pybricksdev');
+
+			const venvExists = fs.existsSync(venvDir);
+			const pybricksdevExists = fs.existsSync(venvPybricksdev);
+
+			let info = '=== Pybricks Runner Debug Info ===\n\n';
+			info += `Platform: ${process.platform}\n`;
+			info += `Home Directory: ${homeDir}\n`;
+			info += `Venv Directory: ${venvDir}\n`;
+			info += `Venv Exists: ${venvExists ? '✓ YES' : '✗ NO'}\n\n`;
+			info += `Looking for pybricksdev at:\n${venvPybricksdev}\n`;
+			info += `pybricksdev.exe Exists: ${pybricksdevExists ? '✓ YES' : '✗ NO'}\n\n`;
+
+			if (venvExists) {
+				info += 'Files in venv:\n';
+				try {
+					const scriptsDir = path.join(venvDir, process.platform === 'win32' ? 'Scripts' : 'bin');
+					if (fs.existsSync(scriptsDir)) {
+						const files = fs.readdirSync(scriptsDir);
+						info += files.slice(0, 20).join('\n') + '\n';
+						if (files.length > 20) info += `... and ${files.length - 20} more files\n`;
+					}
+				} catch (e) {
+					info += `Error reading directory: ${e.message}\n`;
+				}
+			}
+
+			info += '\n';
+			if (!pybricksdevExists) {
+				info += '❌ pybricksdev.exe not found!\n\n';
+				info += 'Solutions:\n';
+				info += '1. Run the installer: installers/install-windows.bat\n';
+				info += '2. Or manually: pip install pybricksdev\n';
+			} else {
+				info += '✓ pybricksdev.exe found!\n';
+			}
+
+			const doc = await vscode.workspace.openTextDocument({
+				content: info,
+				language: 'text'
+			});
+			await vscode.window.showTextDocument(doc);
+		}),
+
 		vscode.commands.registerCommand('pybricks.run', async () => {
 			const editor = vscode.window.activeTextEditor;
 			if (!editor) {
@@ -259,17 +314,35 @@ function activate(context) {
 
 	// Check if pybricksdev is installed
 	if (!globalState.get('pybricksdevChecked')) {
-		const pybricksdevCmd = getPybricksdevCommand();
-		exec(`${pybricksdevCmd} --version`, { timeout: 3000 }, (err) => {
+		const pybricksdevCmd = getPybricksdevCommand(true);
+		exec(`${pybricksdevCmd} --version`, { timeout: 3000 }, (err, stdout) => {
 			if (err) {
+				const homeDir = os.homedir();
+				const venvPath = path.join(homeDir, '.pybricks-venv',
+					process.platform === 'win32' ? 'Scripts\\pybricksdev.exe' : 'bin/pybricksdev');
+
 				vscode.window.showWarningMessage(
-					'pybricksdev is not installed. Install it with: pip install pybricksdev',
+					'pybricksdev is not installed. Please run the installer.',
+					'Run Installer',
+					'Show Debug Info',
 					'Learn More'
 				).then(selection => {
-					if (selection === 'Learn More') {
+					if (selection === 'Run Installer') {
+						const installersPath = path.join(context.extensionPath, 'installers');
+						vscode.env.openExternal(vscode.Uri.file(installersPath));
+					} else if (selection === 'Show Debug Info') {
+						vscode.window.showInformationMessage(
+							`Looking for: ${venvPath}\n` +
+							`Exists: ${fs.existsSync(venvPath)}\n` +
+							`Home: ${homeDir}`,
+							'OK'
+						);
+					} else if (selection === 'Learn More') {
 						vscode.env.openExternal(vscode.Uri.parse('https://github.com/pybricks/pybricksdev#installation'));
 					}
 				});
+			} else {
+				console.log('[Pybricks] pybricksdev version:', stdout.trim());
 			}
 			globalState.update('pybricksdevChecked', true);
 		});

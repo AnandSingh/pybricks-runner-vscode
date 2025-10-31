@@ -59,13 +59,12 @@ if errorlevel 1 (
 echo [✓] Virtual environment created
 echo.
 
-REM Activate virtual environment and install
+REM Install directly in venv without activation (avoids PowerShell issues)
 echo [*] Upgrading pip...
-call "%VENV_DIR%\Scripts\activate.bat"
-python -m pip install --upgrade pip >nul 2>&1
+"%VENV_DIR%\Scripts\python.exe" -m pip install --upgrade pip >nul 2>&1
 
 echo [*] Installing pybricksdev...
-pip install pybricksdev
+"%VENV_DIR%\Scripts\python.exe" -m pip install pybricksdev
 
 if errorlevel 1 (
     echo.
