@@ -2,7 +2,7 @@
   "name": "pybricks-runner",
   "displayName": "Pybricks Runner",
   "description": "Program LEGO SPIKE Prime and EV3 robots using Pybricks",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "publisher": "AnandSingh",
   "icon": "pybricks-runner-icon.png",
   "engines": {
