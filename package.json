@@ -1,8 +1,8 @@
 {
   "name": "pybricks-runner",
   "displayName": "Pybricks Runner",
-  "description": "Program LEGO SPIKE Prime and EV3 robots using Pybricks. Supports remote workspaces (SSH/WSL/Dev Containers) and multi-file projects.",
-  "version": "0.3.1",
+  "description": "Program LEGO SPIKE Prime and EV3 robots using Pybricks",
+  "version": "0.3.2",
   "publisher": "AnandSingh",
   "icon": "pybricks-runner-icon.png",
   "engines": {
@@ -15,13 +15,9 @@
   "categories": [
     "Other"
   ],
-  "extensionKind": [
-    "workspace",
-    "ui"
-  ],
   "activationEvents": [
     "onStartupFinished"
-    ],
+  ],
   "main": "./extension.js",
   "contributes": {
     "viewsContainers": {
@@ -39,6 +35,11 @@
           "id": "pybricks.devices",
           "name": "Devices",
           "type": "tree"
+        },
+        {
+          "id": "pybricks.selectedRobot",
+          "name": "Selected Robot",
+          "type": "webview"
         }
       ]
     },
@@ -62,10 +63,6 @@
       {
         "command": "pybricks.disconnect",
         "title": "Pybricks: Disconnect"
-      },
-      {
-        "command": "pybricks.openSettings",
-        "title": "Pybricks: Open Quick Settings"
       }
     ],
     "menus": {
@@ -104,16 +101,6 @@
           "type": "string",
           "default": "",
           "description": "Default robot (BLE name) to auto-select."
-        },
-        "pybricksRunner.autoConnectOnStartup": {
-          "type": "boolean",
-          "default": false,
-          "description": "If true, auto-connect the last device when VS Code starts."
-        },
-        "pybricksRunner.autoRunOnSave": {
-          "type": "boolean",
-          "default": false,
-          "description": "If true, upload & run on file save."
         }
       }
     }

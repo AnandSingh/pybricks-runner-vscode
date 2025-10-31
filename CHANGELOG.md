@@ -2,6 +2,35 @@
 
 All notable changes to the "pybricks-runner" extension will be documented in this file.
 
+## [0.3.2] - 2025-10-31
+
+### 🎯 Simplification Release
+
+#### Core Changes
+- **Removed Web Bluetooth support** - Simplified extension to focus on native VS Code with pybricksdev CLI only
+- **Removed remote workspace syncing** - Extension now works best with local workspaces
+- **Removed multi-file bundling** - Use pybricksdev's native capabilities instead
+- **Kept all UI elements** - Activity bar, sidebar, device scanning, and robot selection remain fully functional
+
+#### What's Still Included
+- ✅ Activity bar icon and sidebar
+- ✅ Device scanning and management
+- ✅ Robot name selection and persistence
+- ✅ Status bar integration
+- ✅ Two-button interface (Run + Select Robot)
+- ✅ Terminal integration with pybricksdev CLI
+
+#### Benefits
+- **Simpler codebase** - Reduced from 1065 lines to 285 lines
+- **Easier to maintain** - Focus on core functionality
+- **More reliable** - Uses pybricksdev's native features directly
+- **Better performance** - No unnecessary complexity
+
+#### Migration Note
+If you were using Web Bluetooth or remote workspace features, please use:
+- **For code-server/browser:** Use pybricksdev directly or the official Pybricks web IDE
+- **For remote workspaces:** Work with local copies or use VS Code's built-in remote development
+
 ## [0.3.1] - 2025-10-26
 
 ### 🐛 Bug Fixes

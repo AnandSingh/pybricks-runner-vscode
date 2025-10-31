@@ -2,3 +2,6 @@ node_modules
 .vscode-test/
 *.vsix
 .env
+*.log
+.DS_Store
+extension-old-backup.js
